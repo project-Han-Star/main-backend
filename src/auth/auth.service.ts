@@ -1,6 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from 'src/types/User';
 import { UserService } from 'src/user/user.service';
 
 @Injectable()
@@ -20,10 +19,22 @@ export class AuthService {
     return null;
   }
 
-  async login(user: User) {
+  async login(user: any) {
     const payload = { email: user.email, sub: user.id };
     return {
       accessToken: this.jwtService.sign(payload),
     };
+  }
+
+  async register(user: any) {
+    const findUser = await this.userService.findOne(user.email);
+    if (findUser) {
+      throw new ConflictException('User with this email already exists');
+    }
+    await this.userService.createUser(
+      user.useremail,
+      user.password,
+      user.islawyer,
+    );
   }
 }

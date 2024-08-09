@@ -1,11 +1,36 @@
 import { Injectable } from '@nestjs/common';
-import { User } from 'src/types/User';
-
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserEntity } from './Entity/user.entity';
+import { Repository } from 'typeorm';
 @Injectable()
 export class UserService {
-  private readonly users = [{ id: 1, email: 'hosung', password: 'asdf' }];
+  constructor(
+    @InjectRepository(UserEntity)
+    private userRepository: Repository<UserEntity>,
+  ) {}
 
-  async findOne(email: string): Promise<User | undefined> {
-    return this.users.find((user) => user.email === email);
+  async findAll(): Promise<UserEntity[]> {
+    return this.userRepository.find();
+  }
+
+  async findOne(email: string): Promise<UserEntity | undefined> {
+    return this.userRepository.findOne({
+      where: { email: email },
+    });
+  }
+
+  async createUser(
+    email: string,
+    password: string,
+    lawyer: boolean,
+  ): Promise<any> {
+    const newUser = this.userRepository.create({
+      email,
+      password,
+      lawyer,
+    });
+
+    // 데이터베이스에 저장
+    return await this.userRepository.save(newUser);
   }
 }
